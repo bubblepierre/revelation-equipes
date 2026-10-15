@@ -112,20 +112,13 @@ if st.button("Révéler les rôles et l'analyse de l'équipe", type="primary"):
                 f"Valeurs: {m['valeurs']}\n"
             )
         
-        success = False
-        attempts = 0
-        while not success and attempts < 3:
-            try:
-                response = client.models.generate_content(
-                    model="gemini-2.5-flash",
-                    contents=[system_prompt, user_content]
-                )
-                st.success("Diagnostic prêt !")
-                st.markdown(response.text)
-                success = True
-            except errors.APIError:
-                attempts += 1
-                if attempts < 3:
-                    time.sleep(3)
-                else:
-                    st.error("Le serveur est très sollicité. Veuillez recliquer sur le bouton dans un instant.")
+        try:
+            # Modèle standard stabilisé
+            response = client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=[system_prompt, user_content]
+            )
+            st.success("Diagnostic prêt !")
+            st.markdown(response.text)
+        except Exception as e:
+            st.error(f"Détail de l'erreur retournée par Google : {e}")
