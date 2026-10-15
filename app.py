@@ -112,23 +112,12 @@ if st.button("Révéler les rôles et l'analyse de l'équipe", type="primary"):
                 f"Valeurs: {m['valeurs']}\n"
             )
         
-        # Liste de modèles avec bascule automatique en cas de pic de charge
-        modeles_a_tester = ["gemini-flash", "gemini-1.5-flash", "gemini-2.0-flash-lite"]
-        reponse_obtenue = False
-
-        for modele in modeles_a_tester:
-            try:
-                response = client.models.generate_content(
-                    model=modele,
-                    contents=[system_prompt, user_content]
-                )
-                st.success("Diagnostic prêt !")
-                st.markdown(response.text)
-                reponse_obtenue = True
-                break
-            except Exception:
-                time.sleep(1)
-                continue
-
-        if not reponse_obtenue:
-            st.error("Les serveurs sont temporairement très chargés. Veuillez recliquer sur le bouton dans 10 secondes.")
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=[system_prompt, user_content]
+            )
+            st.success("Diagnostic prêt !")
+            st.markdown(response.text)
+        except Exception as e:
+            st.error(f"Erreur technique : {e}")
