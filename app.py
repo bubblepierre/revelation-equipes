@@ -115,7 +115,7 @@ if st.button("Révéler les rôles et l'analyse de l'équipe", type="primary"):
         try:
             # Modèle standard stabilisé
             response = client.models.generate_content(
-                model="gemini-2.0-flash",
+                model="gemini-3.8-flash",
                 contents=[system_prompt, user_content]
             )
             st.success("Diagnostic prêt !")
