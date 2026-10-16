@@ -2,12 +2,14 @@ import streamlit as st
 from google import genai
 from google.genai import errors
 
-st.set_page_config(page_title="Diagnostic des Talents & Structuration d'Équipe", layout="wide")
+# Configuration de la page
+st.set_page_config(page_title="Convention Water4Future - Révélation d'Équipe", layout="wide")
 
-# Récupération de la clé API
+# Connexion à l'API Google (récupération de la clé depuis Streamlit Secrets)
 api_key = st.secrets.get("GEMINI_API_KEY")
 client = genai.Client(api_key=api_key)
 
+# Données des menus déroulants
 MBTI_TYPES = [
     "ISTJ - Logisticien", "ISFJ - Défenseur", "INFJ - Avocat", "INTJ - Architecte",
     "ISTP - Virtuose", "ISFP - Aventurier", "INFP - Médiateur", "INTP - Logicien",
@@ -38,13 +40,15 @@ VERBES = [
 ]
 
 st.title("Diagnostic des Talents & Structuration d'Équipe")
-st.markdown("Renseignez les profils des membres du groupe pour révéler vos complémentarités et attribuer les responsabilités opérationnelles.")
+st.markdown("Renseignez les profils de votre équipe pour révéler vos complémentarités et attribuer les responsabilités du projet.")
 
+# Curseur de 1 à 10 membres
 nb_membres = st.slider("Nombre de participants dans l'équipe :", min_value=1, max_value=10, value=4)
 
 membres_data = []
 colonnes = st.columns(2)
 
+# Génération des fiches de saisie
 for i in range(nb_membres):
     col = colonnes[i % 2]
     with col:
@@ -55,7 +59,7 @@ for i in range(nb_membres):
         intel_2 = st.selectbox(f"Intelligence dominante n°2 :", INTELLIGENCES, key=f"intel2_{i}", index=1)
         verbe_1 = st.selectbox(f"Verbe de talent n°1 :", VERBES, key=f"verbe1_{i}")
         verbe_2 = st.selectbox(f"Verbe de talent n°2 :", VERBES, key=f"verbe2_{i}", index=1)
-        valeurs = st.text_input(f"3 à 4 valeurs clés :", key=f"val_{i}", placeholder="Ex: Rigueur, Écoute, Audace")
+        valeurs = st.text_input(f"3 à 4 valeurs clés :", key=f"val_{i}", placeholder="Ex: Rigueur, Écologie, Écoute")
         
         membres_data.append({
             "prenom": nom if nom else f"Membre {i+1}",
@@ -68,26 +72,26 @@ for i in range(nb_membres):
         })
 
 system_prompt = """
-Tu es un consultant expert en dynamique d'équipe, en posture professionnelle et en gouvernance de projet.
-Ton rôle est d'analyser la composition d'une équipe ou d'un profil individuel (de 1 à 10 personnes) à partir des données transmises : MBTI, 2 Intelligences dominantes de Gardner, 2 Verbes de talents, Valeurs.
+Tu es un expert en dynamique d'équipe et gouvernance de projet.
+Analyse l'équipe (1 à 10 personnes) selon le MBTI, les 2 Intelligences de Gardner, les 2 Verbes de talents et les Valeurs.
 
-Respecte scrupuleusement la structure suivante :
+Structure ta réponse EXACTEMENT ainsi :
 
-### 1. Analyse collective de l'équipe
-- **Forces du collectif :** Analyse synthétique des dominantes de l'équipe, des forces opérationnelles et du tempérament global. (Si 1 seule personne, analyse ses atouts majeurs).
-- **Points de vigilance & fatigue :** Zones d'angles morts (rôles ou compétences peu représentés) et risques d'épuisement collectif si le travail n'est pas bien réparti.
+### 1. Cartographie de l'équipe
+- **Les Forces :** Décris la dynamique collective, l'énergie dominante et la créativité du groupe.
+- **Points de Vigilance :** Ce qui manque à l'équipe et ce qui risque de les bloquer (les angles morts).
 
-### 2. Attribution des postes opérationnels
-Attribue à chaque membre un poste exécutif officiel adapté au fonctionnement d'une organisation (ex: CEO, CMO, CTO, CDO, CFO, COO, etc.) formulé sous forme d'un binôme strict :
-« [Prénom] : [Titre du poste en anglais abrégé et complet] / [Mission principale en français] »
-- **Sa mission concrète :** Définis précisément ce qu'il prend en charge dans le projet ou la structure pour assurer le succès collectif, en faisant le lien direct avec son MBTI, ses deux intelligences et ses deux verbes de talents.
-- **Ce qui l'épuise :** Les contextes, méthodes de travail ou types de tâches qui le vident de son énergie et qu'il doit limiter ou déléguer.
+### 2. Attribution des Postes & Missions
+Attribue à CHAQUE membre un rôle exécutif officiel (CEO, CMO, CTO, CDO, CFO, COO...) sous cette forme stricte :
+**[Prénom] : [Titre du poste] / [Mission]**
+- **Ta mission concrète :** Explique son rôle opérationnel direct en justifiant par ses talents (MBTI, intelligences, verbes).
+- **Attention à la fatigue :** Indique les tâches ou contextes qui vont l'épuiser (sa zone de frustration) et qu'il/elle doit éviter.
 
-Ton ton doit être direct, valorisant, professionnel et orienté vers l'action.
+Sois ultra-professionnel, percutant et valorisant. N'invente pas de contraintes thématiques.
 """
 
-if st.button("Révéler les rôles et l'analyse de l'équipe", type="primary"):
-    with st.spinner("Analyse approfondie en cours..."):
+if st.button("Révéler les rôles de l'équipe", type="primary"):
+    with st.spinner("L'IA analyse vos talents..."):
         user_content = f"L'équipe est composée de {nb_membres} personne(s) :\n"
         for m in membres_data:
             user_content += (
@@ -98,12 +102,12 @@ if st.button("Révéler les rôles et l'analyse de l'équipe", type="primary"):
             )
         
         try:
-            # Appel au modèle standard rapide et fiable
+            # Appel direct au modèle de production exigé par l'API
             response = client.models.generate_content(
                 model="gemini-3.8-flash",
                 contents=[system_prompt, user_content]
             )
-            st.success("Diagnostic prêt !")
+            st.success("Diagnostic d'équipe prêt !")
             st.markdown(response.text)
         except errors.APIError as e:
-            st.error(f"Une erreur est survenue avec l'API : {e}")
+            st.error(f"Une erreur technique est survenue : {e}")
