@@ -1,11 +1,10 @@
 import streamlit as st
-import time
 from google import genai
 from google.genai import errors
 
-st.set_page_config(page_title="Révélation des Talents & Rôles d'Équipe", layout="wide")
+st.set_page_config(page_title="Diagnostic des Talents & Structuration d'Équipe", layout="wide")
 
-# Récupération sécurisée de la clé d'API
+# Récupération de la clé API
 api_key = st.secrets.get("GEMINI_API_KEY")
 client = genai.Client(api_key=api_key)
 
@@ -41,12 +40,9 @@ VERBES = [
 st.title("Diagnostic des Talents & Structuration d'Équipe")
 st.markdown("Renseignez les profils des membres du groupe pour révéler vos complémentarités et attribuer les responsabilités opérationnelles.")
 
-# Sélection de 1 à 10 membres
 nb_membres = st.slider("Nombre de participants dans l'équipe :", min_value=1, max_value=10, value=4)
 
 membres_data = []
-
-# Affichage en 2 colonnes pour faciliter la saisie sur écran ou mobile
 colonnes = st.columns(2)
 
 for i in range(nb_membres):
@@ -55,15 +51,10 @@ for i in range(nb_membres):
         st.subheader(f"Membre {i + 1}")
         nom = st.text_input(f"Prénom :", key=f"nom_{i}", placeholder=f"Ex: Participant {i+1}")
         mbti = st.selectbox(f"Profil MBTI :", MBTI_TYPES, key=f"mbti_{i}")
-        
-        # 2 intelligences dominantes
         intel_1 = st.selectbox(f"Intelligence dominante n°1 :", INTELLIGENCES, key=f"intel1_{i}")
         intel_2 = st.selectbox(f"Intelligence dominante n°2 :", INTELLIGENCES, key=f"intel2_{i}", index=1)
-        
-        # 2 verbes de talents
         verbe_1 = st.selectbox(f"Verbe de talent n°1 :", VERBES, key=f"verbe1_{i}")
         verbe_2 = st.selectbox(f"Verbe de talent n°2 :", VERBES, key=f"verbe2_{i}", index=1)
-        
         valeurs = st.text_input(f"3 à 4 valeurs clés :", key=f"val_{i}", placeholder="Ex: Rigueur, Écoute, Audace")
         
         membres_data.append({
@@ -78,13 +69,7 @@ for i in range(nb_membres):
 
 system_prompt = """
 Tu es un consultant expert en dynamique d'équipe, en posture professionnelle et en gouvernance de projet.
-Ton rôle est d'analyser la composition d'une équipe ou d'un profil individuel (de 1 à 10 personnes) à partir des données transmises :
-- Profil MBTI (16 personnalités)
-- 2 Intelligences dominantes de Gardner
-- 2 Verbes de talents
-- Valeurs déclarées
-
-Ce livrable doit servir aussi bien pour un projet d'innovation, un hackathon, qu'un collectif professionnel (cabinet, entreprise, association). N'invente aucune contrainte thématique non mentionnée.
+Ton rôle est d'analyser la composition d'une équipe ou d'un profil individuel (de 1 à 10 personnes) à partir des données transmises : MBTI, 2 Intelligences dominantes de Gardner, 2 Verbes de talents, Valeurs.
 
 Respecte scrupuleusement la structure suivante :
 
@@ -102,7 +87,7 @@ Ton ton doit être direct, valorisant, professionnel et orienté vers l'action.
 """
 
 if st.button("Révéler les rôles et l'analyse de l'équipe", type="primary"):
-    with st.spinner("Analyse des profils en cours..."):
+    with st.spinner("Analyse approfondie en cours..."):
         user_content = f"L'équipe est composée de {nb_membres} personne(s) :\n"
         for m in membres_data:
             user_content += (
@@ -113,11 +98,12 @@ if st.button("Révéler les rôles et l'analyse de l'équipe", type="primary"):
             )
         
         try:
+            # Appel au modèle standard rapide et fiable
             response = client.models.generate_content(
-                model="gemini-3.8-flash",
+                model="gemini-1.5-flash",
                 contents=[system_prompt, user_content]
             )
             st.success("Diagnostic prêt !")
             st.markdown(response.text)
-        except Exception as e:
-            st.error(f"Erreur technique : {e}")
+        except errors.APIError as e:
+            st.error(f"Une erreur est survenue avec l'API : {e}")
