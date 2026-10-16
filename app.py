@@ -3,7 +3,7 @@ from google import genai
 from google.genai import errors
 
 # Configuration de la page
-st.set_page_config(page_title="Convention Water4Future - Révélation d'Équipe", layout="wide")
+st.set_page_config(page_title="Strat'Team", layout="wide")
 
 # Connexion à l'API Google (récupération de la clé depuis Streamlit Secrets)
 api_key = st.secrets.get("GEMINI_API_KEY")
@@ -39,7 +39,7 @@ VERBES = [
     "Contrôler, vérifier (s'assurer du bon fonctionnement et fiabiliser)"
 ]
 
-st.title("Diagnostic des Talents & Structuration d'Équipe")
+st.title("Strat'Team : Découvrez vos Talents & Structurez votre Équipe")
 st.markdown("Renseignez les profils de votre équipe pour révéler vos complémentarités et attribuer les responsabilités du projet.")
 
 # Curseur de 1 à 10 membres
