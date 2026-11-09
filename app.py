@@ -40,8 +40,8 @@ VERBES = [
 ]
 
 TYPES_EVENEMENT = [
-    "Hackathon (Création d'un projet, d'une solution ou start-up)",
-    "Convention (Enquête, interviews, élaboration d'une vision, création d'un poster et présentation orale)"
+    "Hackathon / Projet",
+    "Convention / Enquête"
 ]
 
 st.title("Diagnostic des Talents & Structuration d'Équipe")
