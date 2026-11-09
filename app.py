@@ -3,7 +3,7 @@ from google import genai
 from google.genai import errors
 
 # Configuration de la page
-st.set_page_config(page_title="Strat'Team", layout="wide")
+st.set_page_config(page_title="Diagnostic des Talents et Structuration d'Équipe", layout="wide")
 
 # Connexion à l'API Google (récupération de la clé depuis Streamlit Secrets)
 api_key = st.secrets.get("GEMINI_API_KEY")
@@ -39,8 +39,18 @@ VERBES = [
     "Contrôler, vérifier (s'assurer du bon fonctionnement et fiabiliser)"
 ]
 
-st.title("Strat'Team : Découvrez vos Talents & Structurez votre Équipe")
-st.markdown("Renseignez les profils de votre équipe pour révéler vos complémentarités et attribuer les responsabilités du projet.")
+TYPES_EVENEMENT = [
+    "Hackathon (Création d'un projet, d'une solution ou start-up)",
+    "Convention (Enquête, interviews, élaboration d'une vision, création d'un poster et présentation orale)"
+]
+
+st.title("Diagnostic des Talents & Structuration d'Équipe")
+st.markdown("Renseignez le type d'événement et les profils de votre équipe pour révéler vos complémentarités et attribuer les responsabilités du projet.")
+
+# Choix du type d'événement
+type_evenement = st.selectbox("Dans quel cadre se réunit cette équipe ?", TYPES_EVENEMENT)
+
+st.markdown("---")
 
 # Curseur de 1 à 10 membres
 nb_membres = st.slider("Nombre de participants dans l'équipe :", min_value=1, max_value=10, value=4)
@@ -71,27 +81,35 @@ for i in range(nb_membres):
             "valeurs": valeurs
         })
 
-system_prompt = """
-Tu es un expert en dynamique d'équipe et gouvernance de projet.
-Analyse l'équipe (1 à 10 personnes) selon le MBTI, les 2 Intelligences de Gardner, les 2 Verbes de talents et les Valeurs.
+system_prompt = f"""
+Tu es un expert en dynamique d'équipe et accompagnement de jeunes talents (éco-délégués).
+Le contexte du travail de cette équipe (1 à 10 personnes) est le suivant : {type_evenement}.
+Analyse l'équipe selon les données fournies : MBTI, 2 Intelligences de Gardner, 2 Verbes de talents et Valeurs.
 
 Structure ta réponse EXACTEMENT ainsi :
 
 ### 1. Cartographie de l'équipe
-- **Les Forces :** Décris la dynamique collective, l'énergie dominante et la créativité du groupe.
-- **Points de Vigilance :** Ce qui manque à l'équipe et ce qui risque de les bloquer (les angles morts).
+- **Les Forces :** Décris la dynamique collective, l'énergie dominante et la créativité du groupe adaptées au type d'événement.
+- **Points de Vigilance :** Ce qui manque à l'équipe et ce qui risque de les bloquer.
 
 ### 2. Attribution des Postes & Missions
-Attribue à CHAQUE membre un rôle exécutif officiel (CEO, CMO, CTO, CDO, CFO, COO...) sous cette forme stricte :
-**[Prénom] : [Titre du poste] / [Mission]**
+Le format des rôles dépend STRICTEMENT du contexte :
+
+- SI le contexte est "Hackathon (Création d'un projet, d'une solution ou start-up)", attribue à CHAQUE membre un rôle exécutif officiel de start-up (ex: CEO, CMO, CTO, CDO, CFO, COO...).
+
+- SI le contexte est "Convention", NE DONNE PAS de rôles d'entreprise. Attribue des rôles spécifiques à une mission d'enquête citoyenne (recherche, interviews de terrain, formulation de la vision, conception du poster et pitch oral devant un jury). 
+Exemples de rôles possibles : Coordinateur des Interviews, Analyste/Chercheur (Sources & Données), Concepteur Visuel (Poster), Porte-Parole (Pitch oral), ou Stratège de la Vision. IL N'Y A AUCUN REPORTAGE VIDÉO À PRODUIRE.
+
+Formule le résultat sous cette forme stricte :
+**[Prénom] : [Titre du rôle adapté au contexte] / [Mission]**
 - **Ta mission concrète :** Explique son rôle opérationnel direct en justifiant par ses talents (MBTI, intelligences, verbes).
 - **Attention à la fatigue :** Indique les tâches ou contextes qui vont l'épuiser (sa zone de frustration) et qu'il/elle doit éviter.
 
-Sois ultra-professionnel, percutant et valorisant. N'invente pas de contraintes thématiques.
+Sois ultra-professionnel, bienveillant, valorisant et inspirant.
 """
 
 if st.button("Révéler les rôles de l'équipe", type="primary"):
-    with st.spinner("L'IA analyse vos talents..."):
+    with st.spinner("Un instant, j'analyse vos talents..."):
         user_content = f"L'équipe est composée de {nb_membres} personne(s) :\n"
         for m in membres_data:
             user_content += (
@@ -102,7 +120,7 @@ if st.button("Révéler les rôles de l'équipe", type="primary"):
             )
         
         try:
-            # Appel direct au modèle de production exigé par l'API
+            # Appel direct au modèle de production
             response = client.models.generate_content(
                 model="gemini-3.8-flash",
                 contents=[system_prompt, user_content]
